@@ -1,26 +1,211 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ------------------------------------------------------------------ */
+/* Identidade DS Hidráulica                                            */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-ink: #0a0a0a;
+  --color-ink-2: #121214;
+  --color-graphite: #202124;
+  --color-graphite-2: #2a2b2f;
+  --color-line: #34363b;
+  --color-orange: #f47712;
+  --color-orange-hot: #ff8a2b;
+  --color-copper: #a64613;
+  --color-silver: #c5c7c9;
+  --color-silver-dim: #8d9095;
+  --color-paper: #f4f4f2;
+  --color-success: #3fb27f;
+  --color-warning: #f2b233;
+  --color-danger: #e5484d;
+  --color-info: #5aa7e6;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: "Russo One", "Rajdhani", system-ui, sans-serif;
+  --font-heading: "Rajdhani", system-ui, sans-serif;
+  --font-sans: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-tech: "Barlow Condensed", "Rajdhani", system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-card: 14px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-pulse-glow: pulse-glow 2.4s ease-in-out infinite;
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(244 119 18 / 0.45); }
+    50% { box-shadow: 0 0 0 10px rgb(244 119 18 / 0); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 88px;
+  }
+  body {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-orange);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  input, select, textarea, button { font: inherit; }
+  img, video, canvas { max-width: 100%; }
+}
+
+@layer components {
+  .container-ds {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 768px) {
+    .container-ds { padding-inline: 32px; }
+  }
+
+  /* Texto com acabamento metálico */
+  .text-metal {
+    background: linear-gradient(180deg, #ffffff 0%, #d9dbde 38%, #8e9196 52%, #e6e7e9 70%, #a7aaae 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-hot {
+    background: linear-gradient(180deg, #ffb066 0%, #f47712 55%, #a64613 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    font-family: var(--font-tech);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--color-orange);
+  }
+
+  /* Linhas técnicas inspiradas em desenho mecânico */
+  .bg-blueprint {
+    background-image:
+      linear-gradient(rgb(197 199 201 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(197 199 201 / 0.05) 1px, transparent 1px),
+      linear-gradient(rgb(197 199 201 / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(197 199 201 / 0.025) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  }
+
+  .panel {
+    background: linear-gradient(180deg, rgb(42 43 47 / 0.75), rgb(18 18 20 / 0.9));
+    border: 1px solid rgb(197 199 201 / 0.1);
+    border-radius: var(--radius-card);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 20px 40px -24px rgb(0 0 0 / 0.8);
+  }
+
+  .hairline {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(244 119 18 / 0.7), transparent);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 10px;
+    border: 1px solid var(--color-line);
+    background: var(--color-ink-2);
+    padding: 0.7rem 0.9rem;
+    color: var(--color-paper);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field::placeholder { color: #6f7277; }
+  .field:hover { border-color: #4a4d53; }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-orange);
+    box-shadow: 0 0 0 3px rgb(244 119 18 / 0.2);
+  }
+  .field[aria-invalid="true"] { border-color: var(--color-danger); }
+  select.field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%23C5C7C9' stroke-width='1.6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    padding-right: 2.4rem;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); letter-spacing: 0.01em; }
+  .font-heading { font-family: var(--font-heading); }
+  .font-tech { font-family: var(--font-tech); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Etiquetas técnicas da vista explodida */
+.gear-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+}
+.gear-label__inner {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transform: translate(-4.5px, -50%);
+}
+.gear-label[data-side="left"] .gear-label__inner {
+  flex-direction: row-reverse;
+  transform: translate(calc(-100% + 4.5px), -50%);
+}
+.gear-label__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--color-orange);
+  box-shadow: 0 0 0 4px rgb(244 119 18 / 0.25), 0 0 14px rgb(244 119 18 / 0.9);
+  flex-shrink: 0;
+}
+.gear-label__line {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-orange), rgb(197 199 201 / 0.6));
+}
+.gear-label[data-side="left"] .gear-label__line {
+  background: linear-gradient(270deg, var(--color-orange), rgb(197 199 201 / 0.6));
+}
+.gear-label__text {
+  font-family: var(--font-tech);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-paper);
+  padding: 4px 9px;
+  border: 1px solid rgb(197 199 201 / 0.2);
+  background: rgb(10 10 10 / 0.72);
+  backdrop-filter: blur(6px);
+  border-radius: 6px;
 }
