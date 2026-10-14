@@ -2,7 +2,10 @@ import type { DayHours } from "./availability";
 
 const SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-const fmt = (t: string) => t.replace(":00", "h").replace(":", "h");
+const fmt = (t: string) => {
+  const [h, m] = t.split(":");
+  return `${Number(h)}h${m === "00" ? "" : m}`;
+};
 
 function describe(h: DayHours) {
   if (h.breakStart && h.breakEnd) return `${fmt(h.openTime)}–${fmt(h.breakStart)} e ${fmt(h.breakEnd)}–${fmt(h.closeTime)}`;
