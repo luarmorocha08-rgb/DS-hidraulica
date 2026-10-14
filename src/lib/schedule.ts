@@ -125,7 +125,9 @@ export async function getMonthAvailability(
       const free = day.slots.filter((s) => s.available).length;
       let status: DayStatus;
       if (!day.open) status = day.reason === "holiday" ? "holiday" : (day.reason ?? "closed");
-      else status = free > 0 ? "available" : "full";
+      else if (free > 0) status = "available";
+      // horários que só não cabem pela antecedência mínima não significam "lotado"
+      else status = day.slots.every((s) => s.reason === "too_soon") ? "past" : "full";
       return { date, status, free, holidayName: day.holidayName };
     }),
   };
