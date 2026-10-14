@@ -8,7 +8,7 @@ import { storage } from "@/lib/storage";
 export const dynamic = "force-dynamic";
 
 /** Anexos de clientes — somente para a equipe autenticada. */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: RouteContext<"/api/files/[id]">) {
   if (!(await getSession())) return new NextResponse("Não autorizado", { status: 401 });
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) return new NextResponse("Não encontrado", { status: 404 });

@@ -131,7 +131,7 @@ export function HeroExperience({ title, subtitle }: { title: string; subtitle: s
             />
           )}
           {quality === "low" && <HeroSequence progress={progress} dir={SEQUENCE_DIR} active={visible} />}
-          {isStatic && <HeroPoster className="opacity-80" />}
+          {isStatic && <HeroPoster src="/hero/poster-exploded.jpg" className="opacity-80" />}
         </div>
         {use3d && !ready && <HeroPoster className="opacity-60 blur-[2px]" />}
 
@@ -157,7 +157,11 @@ export function HeroExperience({ title, subtitle }: { title: string; subtitle: s
         {/* 1 — apresentação */}
         <div
           ref={intro}
-          className="absolute inset-x-0 bottom-0 top-[72px] flex items-end pb-[max(7rem,14vh)] md:items-center md:pb-0"
+          className={clsx(
+            isStatic
+              ? "relative flex min-h-[78svh] items-end pb-12 pt-32 md:items-center"
+              : "absolute inset-x-0 bottom-0 top-[72px] flex items-end pb-[max(7rem,14vh)] md:items-center md:pb-0",
+          )}
         >
           <div className="container-ds">
             <div className="max-w-2xl">

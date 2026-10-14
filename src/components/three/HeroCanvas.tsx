@@ -39,7 +39,7 @@ const FLOOR_Y = -1.15;
 function aspectFactor(aspect: number, explode: number) {
   if (aspect >= 1.45) return 1;
   const near = Math.min(1.45, 1.1 / Math.max(aspect, 0.4));
-  const far = Math.min(2.1, 1.45 / Math.max(aspect, 0.4));
+  const far = Math.min(1.7, 1.45 / Math.max(aspect, 0.4));
   return near + (far - near) * explode;
 }
 
@@ -228,6 +228,7 @@ function Lights({ progress, quality }: { progress: RefObject<number>; quality: H
   const rim = useRef<THREE.SpotLight>(null);
   const key = useRef<THREE.SpotLight>(null);
   const sweep = useRef<THREE.PointLight>(null);
+  const top = useRef<THREE.DirectionalLight>(null);
   const born = useRef<number | null>(null);
 
   useFrame((state) => {
@@ -238,6 +239,8 @@ function Lights({ progress, quality }: { progress: RefObject<number>; quality: H
     const h = highlightAmount(p);
     if (key.current) key.current.intensity = (70 - 16 * h) * intro;
     if (rim.current) rim.current.intensity = (30 + 70 * h) * intro;
+    // luz de bancada branca para ler as peças na vista explodida
+    if (top.current) top.current.intensity = (0.25 + 1.6 * explodeAmount(p)) * intro;
     if (sweep.current) {
       // reflexo percorrendo as superfícies metálicas na apresentação
       const s = ((t - born.current) * 0.18) % 1;
@@ -249,11 +252,11 @@ function Lights({ progress, quality }: { progress: RefObject<number>; quality: H
   const shadows = quality === "high";
   return (
     <>
-      <ambientLight intensity={0.12} />
+      <ambientLight intensity={0.16} />
       <spotLight
         ref={key}
         position={[6, 9, 7]}
-        angle={0.5}
+        angle={0.75}
         penumbra={0.8}
         color="#ffe2c4"
         castShadow={shadows}
@@ -263,6 +266,7 @@ function Lights({ progress, quality }: { progress: RefObject<number>; quality: H
       />
       <spotLight ref={rim} position={[-6.5, 3.5, -5]} angle={0.6} penumbra={1} color="#f47712" decay={1.2} />
       <directionalLight position={[-6, 4, 6]} intensity={0.35} color="#9fb6ff" />
+      <directionalLight ref={top} position={[1, 12, 4]} color="#f2f4ff" />
       <pointLight ref={sweep} color="#ffffff" distance={9} decay={1.5} />
     </>
   );
@@ -307,7 +311,7 @@ function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }:
   return (
     <>
       <color attach="background" args={["#08080a"]} />
-      <fog attach="fog" args={["#08080a", 16, 38]} />
+      <fog attach="fog" args={["#08080a", 26, 64]} />
       <Environment resolution={quality === "high" ? 256 : 128} frames={1}>
         <Lightformer form="rect" intensity={2.4} position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[12, 3, 1]} color="#ffffff" />
         <Lightformer form="rect" intensity={1.6} position={[-6, 2, 3]} rotation-y={Math.PI / 2} scale={[6, 2, 1]} color="#f47712" />

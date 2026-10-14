@@ -4,7 +4,7 @@ import { storage } from "@/lib/storage";
 const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", mp4: "video/mp4", mov: "video/quicktime" };
 
 /** Imagens públicas do site enviadas pelo painel (prefixo public/). */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
+export async function GET(_req: NextRequest, { params }: RouteContext<"/api/media/[...key]">) {
   const { key } = await params;
   const path = key.join("/");
   if (!path.startsWith("public/") || path.includes("..")) return new NextResponse("Não encontrado", { status: 404 });
