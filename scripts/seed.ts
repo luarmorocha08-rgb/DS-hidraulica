@@ -6,7 +6,8 @@
 import "dotenv/config";
 import { sql } from "drizzle-orm";
 import { closeDb, db } from "../src/db";
-import { bookingTypes, businessHours, scheduleSettings, services, siteSettings } from "../src/db/schema";
+import { eq } from "drizzle-orm";
+import { bookingTypes, businessHours, galleryItems, scheduleSettings, services, siteSettings } from "../src/db/schema";
 import { SEED_BOOKING_TYPES, SEED_BUSINESS_HOURS, SEED_SERVICES } from "../src/db/seed-data";
 import { DEFAULT_SITE_SETTINGS } from "../src/lib/settings-schema";
 
@@ -30,6 +31,20 @@ async function main() {
       })),
     )
     .onConflictDoNothing();
+  // Imagens de demonstração (renders da intro 3D), identificadas no site como tal,
+  // até a empresa enviar fotos reais pelo painel.
+  await db
+    .update(services)
+    .set({ imageUrl: "/hero/poster.jpg", imageAlt: "Render 3D de caixa de direção hidráulica", isDemoImage: true })
+    .where(eq(services.slug, "manutencao-caixa-de-direcao-hidraulica"));
+  const [{ n }] = (await db.execute<{ n: number }>(sql`select count(*)::int as n from gallery_items`)).rows;
+  if (n === 0) {
+    await db.insert(galleryItems).values([
+      { title: "Caixa de direção — vista explodida", description: "Render técnico mostrando os componentes internos.", category: "caixas", url: "/hero/poster-exploded.jpg", alt: "Render 3D da caixa de direção desmontada", isDemo: true, sortOrder: 0 },
+      { title: "Caixa de direção hidráulica", description: "Render técnico do conjunto montado.", category: "caixas", url: "/hero/poster.jpg", alt: "Render 3D da caixa de direção montada", isDemo: true, sortOrder: 1 },
+      { title: "Sem-fim e pistão de esferas", description: "Render técnico de componentes internos.", category: "componentes", url: "/hero/sequence/frame-050.jpg", alt: "Render 3D de componentes internos da caixa de direção", isDemo: true, sortOrder: 2 },
+    ]);
+  }
   await db.insert(siteSettings).values({ key: "site", value: DEFAULT_SITE_SETTINGS }).onConflictDoNothing();
 
   const counts = await db.execute(sql`
