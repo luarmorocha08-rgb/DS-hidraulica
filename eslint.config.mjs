@@ -7,11 +7,15 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   {
+    // Efeitos que buscam dados (agenda) ou leem APIs só do navegador
+    // (sessionStorage, geolocalização) atualizam estado de propósito.
+    rules: { "react-hooks/set-state-in-effect": "off" },
+  },
+  {
     // Cena 3D: mutar objetos do Three.js dentro de useFrame é o padrão do React Three Fiber.
     files: ["src/components/three/**/*.{ts,tsx}"],
     rules: {
       "react-hooks/immutability": "off",
-      "react-hooks/set-state-in-effect": "off",
     },
   },
   globalIgnores([
