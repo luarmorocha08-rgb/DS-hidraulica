@@ -66,6 +66,7 @@ export function Header({
   const solid = scrolled || !isHome || open;
 
   return (
+    <>
     <header
       className={clsx(
         "fixed inset-x-0 top-0 z-50 transition-[background,border-color,backdrop-filter] duration-500",
@@ -134,11 +135,12 @@ export function Header({
         </div>
       </div>
 
+    </header>
       {/* Menu mobile */}
       <div
         id="menu-mobile"
         hidden={!open}
-        className="fixed inset-x-0 bottom-0 top-[72px] overflow-y-auto bg-ink/97 backdrop-blur-xl xl:hidden"
+        className="fixed inset-x-0 bottom-0 top-[72px] z-50 overflow-y-auto bg-ink/97 backdrop-blur-xl xl:hidden"
       >
         <nav aria-label="Menu" className="container-ds flex min-h-full flex-col py-6">
           <ul className="divide-y divide-white/[0.06]">
@@ -181,6 +183,6 @@ export function Header({
           </div>
         </nav>
       </div>
-    </header>
+    </>
   );
 }

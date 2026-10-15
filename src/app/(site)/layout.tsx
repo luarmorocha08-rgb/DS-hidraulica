@@ -1,4 +1,6 @@
+import { Backdrop } from "@/components/site/Backdrop";
 import { Footer } from "@/components/site/Footer";
+import { PressEffects } from "@/components/site/PressEffects";
 import { FloatingContact } from "@/components/site/FloatingContact";
 import { Header } from "@/components/site/Header";
 import { getOpeningHours, getPublishedServices, getPublishedTestimonials, getSiteSettings } from "@/lib/content";
@@ -22,10 +24,14 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         whatsappHref={whatsappLink(settings.whatsappNumber, WHATSAPP_MESSAGES.general)}
         instagramUrl={settings.instagramUrl}
       />
-      <main id="conteudo" className="pb-20 md:pb-0">
-        {children}
-      </main>
-      <Footer settings={settings} services={services} hoursSummary={opening ? summarizeHours(opening.hours) : []} />
+      <div className="relative isolate">
+        <Backdrop />
+        <main id="conteudo" className="pb-20 md:pb-0">
+          {children}
+        </main>
+        <Footer settings={settings} services={services} hoursSummary={opening ? summarizeHours(opening.hours) : []} />
+      </div>
+      <PressEffects />
       <FloatingContact whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} />
     </>
   );

@@ -11,6 +11,7 @@ import { HeroPoster, HeroSequence } from "./HeroSequence";
 import { detectQuality, type Quality } from "./quality";
 import { band, CAPTIONS, explodeAmount, STAGE } from "./timeline";
 import { GEAR_PARTS } from "./gear/SteeringGear";
+import { gearOpacity, HERO_PHOTO_SRC, TruckPhotoStage, type PhotoStageApi } from "./TruckPhotoStage";
 
 const HeroCanvas = dynamic(() => import("./HeroCanvas"), { ssr: false });
 
@@ -41,17 +42,36 @@ export function HeroExperience({ title, subtitle }: { title: string; subtitle: s
   const railFill = useRef<HTMLDivElement>(null);
   const railItems = useRef<Array<HTMLLIElement | null>>([]);
   const labels = useRef<Record<string, HTMLElement | null>>({});
+  const photoApi = useRef<PhotoStageApi>(null);
+  const gearLayer = useRef<HTMLDivElement>(null);
+  // a foto do caminhão (public/hero/caminhao.jpg) é o visual principal; sem ela, caminhão 3D
+  const [photo, setPhoto] = useState<"loading" | "ok" | "missing">("loading");
+  const [gearOn, setGearOn] = useState(false);
 
-  useEffect(() => setQuality(detectQuality()), []);
+  useEffect(() => {
+    setQuality(detectQuality());
+    const im = new Image();
+    im.onload = () => setPhoto("ok");
+    im.onerror = () => setPhoto("missing");
+    im.src = HERO_PHOTO_SRC;
+  }, []);
 
   // progresso do scroll → cena, textos e indicador
   useEffect(() => {
-    if (!quality || quality === "static" || !section.current) return;
+    if (!quality || quality === "static" || !section.current || photo === "loading") return;
     let kill: (() => void) | undefined;
     let cancelled = false;
+    const withPhoto = photo === "ok";
 
     const apply = (p: number) => {
       progress.current = p;
+      if (withPhoto) {
+        photoApi.current?.update(p);
+        const g = gearOpacity(p);
+        if (gearLayer.current) gearLayer.current.style.opacity = String(g);
+        // a cena 3D só renderiza enquanto aparece
+        setGearOn(g > 0.001);
+      }
       const setBlock = (el: HTMLElement | null, o: number, y = 18) => {
         if (!el) return;
         el.style.opacity = String(o);
@@ -95,8 +115,9 @@ export function HeroExperience({ title, subtitle }: { title: string; subtitle: s
       kill?.();
       io.disconnect();
     };
-  }, [quality]);
+  }, [quality, photo]);
 
+  const withPhoto = photo === "ok";
   const isStatic = quality === "static";
   const use3d = quality === "high" || quality === "medium";
 
@@ -117,23 +138,34 @@ export function HeroExperience({ title, subtitle }: { title: string; subtitle: s
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_45%,#2a1405_0%,#0a0a0a_55%)]" />
         <div aria-hidden className="bg-blueprint absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
 
-        {/* visual: 3D, sequência ou pôster */}
-        <div aria-hidden className={clsx("absolute inset-0 transition-opacity duration-1000", use3d && !ready ? "opacity-0" : "opacity-100")}>
-          {use3d && (
-            <HeroCanvas
-              progress={progress}
-              quality={quality}
-              active={visible}
-              truckUrl={TRUCK_URL}
-              gearUrl={GEAR_URL}
-              onReady={() => setReady(true)}
-              labels={labels}
-            />
-          )}
-          {quality === "low" && <HeroSequence progress={progress} dir={SEQUENCE_DIR} active={visible} />}
-          {isStatic && <HeroPoster src="/hero/poster-exploded.jpg" className="opacity-80" />}
-        </div>
-        {use3d && !ready && <HeroPoster className="opacity-60 blur-[2px]" />}
+        {/* visual principal: foto do caminhão animada */}
+        {withPhoto && quality && <TruckPhotoStage ref={photoApi} interactive={!isStatic} />}
+
+        {/* caixa de direção 3D (ou caminhão 3D completo quando não há foto) */}
+        {photo !== "loading" && !isStatic && (
+          <div
+            ref={gearLayer}
+            aria-hidden
+            className={clsx("absolute inset-0", !withPhoto && "transition-opacity duration-1000", !withPhoto && use3d && !ready && "opacity-0")}
+            style={withPhoto ? { opacity: 0 } : undefined}
+          >
+            {use3d && (
+              <HeroCanvas
+                progress={progress}
+                quality={quality}
+                active={visible && (!withPhoto || gearOn || !ready)}
+                truckUrl={TRUCK_URL}
+                gearUrl={GEAR_URL}
+                onReady={() => setReady(true)}
+                labels={labels}
+                vehicle={withPhoto ? "photo" : "procedural"}
+              />
+            )}
+            {quality === "low" && <HeroSequence progress={progress} dir={SEQUENCE_DIR} active={visible && (!withPhoto || gearOn)} />}
+          </div>
+        )}
+        {isStatic && !withPhoto && <HeroPoster src="/hero/poster-exploded.jpg" className="opacity-80" />}
+        {use3d && !ready && !withPhoto && <HeroPoster className="opacity-60 blur-[2px]" />}
 
         {/* etiquetas técnicas da vista explodida (posicionadas pela cena 3D) */}
         {use3d && (

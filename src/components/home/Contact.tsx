@@ -14,7 +14,8 @@ export function Contact({ settings, hoursSummary }: { settings: SiteSettings; ho
   const coverage = settings.coverage.description || (settings.coverage.cities.length ? settings.coverage.cities.join(", ") : "");
 
   return (
-    <section id="contato" aria-labelledby="contato-titulo" className="relative py-24 md:py-32">
+    <section id="contato" aria-labelledby="contato-titulo" className="relative py-16 md:py-32 overflow-hidden">
+      <span aria-hidden className="watermark top-6 left-[-3vw]">CONTATO</span>
       <div className="container-ds grid gap-10 lg:grid-cols-[1fr_1fr]">
         <div>
           <SectionHeading

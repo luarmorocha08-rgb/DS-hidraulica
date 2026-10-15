@@ -21,6 +21,9 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
     getScheduleSettings().catch(() => null),
   ]);
   const modality = sp.modalidade === "local" ? "onsite" : sp.modalidade === "oficina" ? "workshop" : undefined;
+  const tipo = typeof sp.tipo === "string" ? sp.tipo : undefined;
+  const data = typeof sp.data === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.data) ? sp.data : null;
+  const hora = typeof sp.hora === "string" && /^\d{2}:\d{2}$/.test(sp.hora) ? sp.hora : null;
 
   return (
     <>
@@ -36,6 +39,8 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
           today={todayIn(sched?.timezone ?? "America/Sao_Paulo")}
           whatsappNumber={settings.whatsappNumber}
           initialModality={modality}
+          initialTypeId={tipo}
+          initialSlot={data && hora ? { date: data, time: hora } : undefined}
         />
       </div>
     </>

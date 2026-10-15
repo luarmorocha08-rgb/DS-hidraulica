@@ -51,7 +51,8 @@ export function Gallery({ items }: { items: GalleryEntry[] }) {
   }, [index, step]);
 
   return (
-    <section id="galeria" aria-labelledby="galeria-titulo" className="py-24 md:py-32">
+    <section id="galeria" aria-labelledby="galeria-titulo" className="relative py-16 md:py-32 overflow-hidden">
+      <span aria-hidden className="watermark top-6 right-[-3vw]">OFICINA</span>
       <div className="container-ds">
         <SectionHeading eyebrow="Galeria" title={<span id="galeria-titulo">Nosso trabalho na prática.</span>} />
 

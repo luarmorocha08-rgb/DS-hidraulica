@@ -39,7 +39,8 @@ export function Diagnosis({ whatsappNumber }: { whatsappNumber: string }) {
   const canSubmit = symptoms.length > 0 || severe.length > 0;
 
   return (
-    <section id="diagnostico" aria-labelledby="diag-titulo" className="relative py-24 md:py-32">
+    <section id="diagnostico" aria-labelledby="diag-titulo" className="relative py-16 md:py-32 overflow-hidden">
+      <span aria-hidden className="watermark top-6 right-[-3vw]">DIAGNÓSTICO</span>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgb(244_119_18/0.08),transparent_60%)]" />
       <div className="container-ds relative">
         <SectionHeading

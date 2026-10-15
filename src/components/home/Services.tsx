@@ -10,7 +10,8 @@ import { TiltCard } from "./TiltCard";
 
 export function Services({ services }: { services: Service[] }) {
   return (
-    <section id="servicos" aria-labelledby="servicos-titulo" className="relative py-24 md:py-32">
+    <section id="servicos" aria-labelledby="servicos-titulo" className="relative py-16 md:py-32 overflow-hidden">
+      <span aria-hidden className="watermark top-6 right-[-3vw]">SERVIÇOS</span>
       <div className="container-ds">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <SectionHeading
@@ -29,9 +30,12 @@ export function Services({ services }: { services: Service[] }) {
           </Reveal>
         </div>
 
-        <ul className="mt-14 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <p className="mt-8 flex items-center gap-2 font-tech text-xs uppercase tracking-[0.2em] text-silver-dim sm:hidden">
+          <span aria-hidden className="h-px w-6 bg-orange" /> Deslize para ver os {services.length} serviços →
+        </p>
+        <ul className="-mx-4 mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-3 [&::-webkit-scrollbar]:hidden">
           {services.map((s, i) => (
-            <Reveal as="li" key={s.id} delay={(i % 3) * 90}>
+            <Reveal as="li" key={s.id} delay={(i % 3) * 90} className="w-[84%] shrink-0 snap-center sm:w-auto">
               <TiltCard className="h-full">
                 <article className="panel group relative flex h-full flex-col overflow-hidden">
                   <div

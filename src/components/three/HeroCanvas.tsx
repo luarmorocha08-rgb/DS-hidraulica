@@ -5,7 +5,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useCallback, useMemo, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 import { GEAR_PARTS, partProgress, SteeringGear, type PartRegistry } from "./gear/SteeringGear";
-import { GearModel, TruckModel, TRUCK_LENGTH, type TruckInfo } from "./models";
+import { GearModel, TruckModel, type TruckInfo } from "./models";
+import { ProceduralTruck } from "./truck/ProceduralTruck";
 import type { Quality } from "./quality";
 import {
   explodeAmount,
@@ -31,6 +32,11 @@ export interface HeroCanvasProps {
   capture?: boolean;
   /** Elementos DOM das etiquetas técnicas (posicionados a partir do 3D). */
   labels?: RefObject<Record<string, HTMLElement | null>>;
+  /**
+   * "photo": o caminhão é a foto (HTML) e a cena mostra só a caixa de direção;
+   * "procedural": caminhão modelado em 3D (usado se a foto não existir).
+   */
+  vehicle?: "photo" | "procedural";
 }
 
 const FLOOR_Y = -1.15;
@@ -38,25 +44,31 @@ const FLOOR_Y = -1.15;
 /** Fator de distância da câmera em telas estreitas (mais longe só na vista explodida). */
 function aspectFactor(aspect: number, explode: number) {
   if (aspect >= 1.45) return 1;
-  const near = Math.min(1.45, 1.1 / Math.max(aspect, 0.4));
-  const far = Math.min(1.7, 1.45 / Math.max(aspect, 0.4));
+  const near = Math.min(2.1, 1.0 / Math.max(aspect, 0.4));
+  const far = Math.min(2.2, 1.45 / Math.max(aspect, 0.4));
   return near + (far - near) * explode;
 }
 
 function truckCamera(info: TruckInfo): { keys: CameraKey[]; showcase: THREE.Vector3 } {
-  const L = TRUCK_LENGTH;
+  const L = info.length;
+  const H = info.height;
   const M = info.mount;
-  const S = new THREE.Vector3(0, Math.max(2.1, info.height * 0.55), info.frontZ + 2.4);
+  const F = info.frontZ;
+  // a caixa sai do chassi e flutua à frente do caminhão para a vista explodida
+  const S = new THREE.Vector3(0.6, Math.max(2.2, H * 0.58), F + 3.6);
   const add = (v: THREE.Vector3, x: number, y: number, z: number): [number, number, number] => [v.x + x, v.y + y, v.z + z];
+  const wide: CameraKey["pos"] = [L * 1.05, H * 0.78, F + L * 1.15];
+  const look: CameraKey["target"] = [0, H * 0.4, 0.3];
   const keys: CameraKey[] = [
-    { p: 0, pos: [L * 0.78, L * 0.3, L * 0.98], target: [0, info.height * 0.42, 0] },
-    { p: STAGE.introEnd, pos: [L * 0.68, L * 0.27, L * 0.86], target: [0, info.height * 0.42, 0.4] },
-    { p: STAGE.approachEnd, pos: add(M, 3.4, 2.6, 4.4), target: add(M, 0, 0.5, 0) },
+    { p: 0, pos: wide, target: look },
+    { p: STAGE.introEnd, pos: [L * 0.92, H * 0.66, F + L * 0.98], target: [0, H * 0.38, 0.6] },
+    // lateral baixa: a cabine bascula e a caixa aparece presa à longarina
+    { p: STAGE.approachEnd, pos: add(M, 7.2, 2.3, 4.2), target: add(M, -1.1, 0.8, -0.9) },
     { p: STAGE.revealEnd, pos: add(S, 1.8, 2.0, 6.6), target: add(S, 0.4, 0.55, 0) },
-    { p: STAGE.explodeFull, pos: add(S, 3.4, 4.6, 12.4), target: add(S, 0.6, 0.6, 0.4) },
-    { p: STAGE.holdEnd, pos: add(S, 2.2, 4.0, 12.0), target: add(S, 0.6, 0.6, 0.4) },
-    { p: STAGE.reassembleEnd, pos: add(S, 5.6, 2.2, 7.6), target: add(S, 0.4, 0.5, 0) },
-    { p: 1, pos: [L * 0.78, L * 0.3, L * 0.98], target: [0, info.height * 0.42, 0] },
+    { p: STAGE.explodeFull, pos: add(S, 3.0, 4.4, 12.4), target: add(S, 0.6, 0.4, 0.4) },
+    { p: STAGE.holdEnd, pos: add(S, 0.8, 4.2, 12.6), target: add(S, 0.6, 0.4, 0.4) },
+    { p: STAGE.reassembleEnd, pos: add(S, 5.2, 2.2, 7.4), target: add(S, 0.4, 0.4, -0.6) },
+    { p: 1, pos: wide, target: look },
   ];
   return { keys, showcase: S };
 }
@@ -272,7 +284,8 @@ function Lights({ progress, quality }: { progress: RefObject<number>; quality: H
   );
 }
 
-function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }: HeroCanvasProps) {
+function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels, vehicle = "procedural" }: HeroCanvasProps) {
+  const gearOnly = vehicle === "photo" && !truckUrl;
   const { size } = useThree();
   const narrow = size.width / size.height < 1;
   const [truck, setTruck] = useState<TruckInfo | null>(null);
@@ -283,6 +296,7 @@ function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }:
 
   const rig = useMemo(() => (truck ? truckCamera(truck) : null), [truck]);
   const keys = rig?.keys ?? GEAR_CAMERA;
+  const identity = useMemo(() => new THREE.Quaternion(), []);
   const spread = narrow ? 0.55 : 1;
 
   useFrame((state) => {
@@ -291,21 +305,26 @@ function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }:
     const p = progress.current ?? 0;
     const t = state.clock.elapsedTime;
     if (born.current == null) born.current = t;
-    const appear = capture ? 1 : smooth(Math.min(1, (t - born.current) / 1.6));
-
-    if (truck && rig) {
-      // da posição real no chassi para a posição de exibição
-      const s = showcaseAmount(p);
-      const mountScale = 0.12;
-      g.position.lerpVectors(truck.mount, rig.showcase, s);
-      g.scale.setScalar(THREE.MathUtils.lerp(mountScale, 1, s));
-      g.quaternion.slerpQuaternions(truck.mountQuaternion, new THREE.Quaternion(), s);
-    } else {
-      const idle = 1 - ramp(p, 0, STAGE.introEnd + 0.06);
-      g.position.set(0, (1 - appear) * -0.35 + Math.sin(t * 0.8) * 0.03 * idle, 0);
-      g.rotation.set(0, -0.35 + Math.sin(t * 0.25) * 0.22 * idle + (1 - appear) * -0.6, 0);
-      g.scale.setScalar(0.92 + 0.08 * appear);
+    if (gearOnly) {
+      // caixa sozinha em exposição, surgindo quando a foto dá lugar ao 3D
+      const appear = capture ? 1 : smooth(ramp(p, STAGE.approachEnd - 0.04, STAGE.approachEnd + 0.06));
+      g.visible = true;
+      g.position.set(0, (1 - appear) * -0.5 + Math.sin(t * 0.8) * 0.03, 0);
+      g.rotation.set(0, -0.35 + (1 - appear) * -0.9, 0);
+      g.scale.setScalar(0.8 + 0.2 * appear);
+      return;
     }
+    g.visible = !!truck;
+    if (!truck || !rig) return;
+    // da posição real no chassi para a posição de exibição, girando para a vista técnica
+    const s = showcaseAmount(p);
+    const lift = Math.sin(s * Math.PI) * 0.6; // arco ao sair do chassi
+    g.position.lerpVectors(truck.mount, rig.showcase, s);
+    g.position.y += lift;
+    g.scale.setScalar(THREE.MathUtils.lerp(truck.mountScale, 1, s));
+    g.quaternion.slerpQuaternions(truck.mountQuaternion, identity, s);
+    // flutuação leve enquanto exposta
+    g.position.y += Math.sin(t * 0.9) * 0.04 * s;
   });
 
   return (
@@ -321,12 +340,16 @@ function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }:
 
       <Lights progress={progress} quality={quality} />
       <LightBeams />
-      <Floor quality={quality} y={truck ? 0 : FLOOR_Y} />
+      <Floor quality={quality} y={gearOnly ? FLOOR_Y : 0} />
       {quality === "high" && !capture && (
         <Sparkles count={70} scale={[16, 6, 10]} position={[0, 2, -2]} size={2.2} speed={0.25} color="#ffb070" opacity={0.5} />
       )}
 
-      {truckUrl && <TruckModel url={truckUrl} progress={progress} onInfo={onInfo} />}
+      {truckUrl ? (
+        <TruckModel url={truckUrl} progress={progress} onInfo={onInfo} />
+      ) : gearOnly ? null : (
+        <ProceduralTruck progress={progress} onInfo={onInfo} showLights={quality === "high" || !!capture} />
+      )}
 
       <group ref={gearRoot}>
         {gearUrl ? (
@@ -337,9 +360,7 @@ function SceneContent({ progress, quality, truckUrl, gearUrl, capture, labels }:
       </group>
       {labels && !capture && <LabelProjector progress={progress} registry={registry} labels={labels} />}
 
-      {!truck && (
-        <ContactShadows position={[0, FLOOR_Y + 0.01, 0]} scale={14} blur={2.6} far={4} opacity={0.75} resolution={quality === "high" ? 512 : 256} frames={capture ? 1 : Infinity} />
-      )}
+      <ContactShadows position={[0, (gearOnly ? FLOOR_Y : 0) + 0.01, 0]} scale={16} blur={2.2} far={3.5} opacity={0.8} resolution={quality === "high" ? 512 : 256} frames={1} />
 
       <CameraRig progress={progress} keys={keys} capture={capture} />
     </>

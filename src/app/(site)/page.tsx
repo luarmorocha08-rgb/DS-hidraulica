@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { About } from "@/components/home/About";
-import { BookingCta } from "@/components/home/BookingCta";
+import { AgendaShowcase } from "@/components/home/AgendaShowcase";
 import { Contact } from "@/components/home/Contact";
 import { Diagnosis } from "@/components/home/Diagnosis";
 import { Gallery } from "@/components/home/Gallery";
@@ -8,7 +8,9 @@ import { HowItWorks } from "@/components/home/HowItWorks";
 import { Services } from "@/components/home/Services";
 import { Testimonials } from "@/components/home/Testimonials";
 import { HeroExperience } from "@/components/three/HeroExperience";
+import { Marquee } from "@/components/site/Marquee";
 import {
+  getActiveBookingTypes,
   getOpeningHours,
   getPublishedGallery,
   getPublishedServices,
@@ -17,6 +19,7 @@ import {
   getTimeline,
 } from "@/lib/content";
 import { summarizeHours } from "@/lib/hours";
+import { todayIn } from "@/lib/time";
 import { JsonLd, localBusinessJsonLd } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,25 +33,29 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [settings, services, gallery, testimonials, timeline, opening] = await Promise.all([
+  const [settings, services, gallery, testimonials, timeline, opening, types] = await Promise.all([
     getSiteSettings(),
     getPublishedServices(),
     getPublishedGallery(),
     getPublishedTestimonials(),
     getTimeline(),
     getOpeningHours(),
+    getActiveBookingTypes(),
   ]);
+  const agendaType = types.find((t) => t.slug === "diagnostico" && t.allowWorkshop) ?? types[0] ?? null;
+  const tz = opening?.settings.timezone ?? "America/Sao_Paulo";
   const hours = opening ? summarizeHours(opening.hours) : [];
 
   return (
     <>
       <JsonLd data={localBusinessJsonLd(settings, services)} />
       <HeroExperience title={settings.hero.title} subtitle={settings.hero.subtitle} />
+      <Marquee />
       <About settings={settings} timeline={timeline} />
       <Services services={services} />
       <HowItWorks />
       <Diagnosis whatsappNumber={settings.whatsappNumber} />
-      <BookingCta />
+      <AgendaShowcase bookingTypeId={agendaType?.id ?? null} bookingTypeName={agendaType?.name ?? "Agenda"} today={todayIn(tz)} />
       {gallery.length > 0 && (
         <Gallery
           items={gallery.map((g) => ({

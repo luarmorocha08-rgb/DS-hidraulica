@@ -42,7 +42,7 @@ export function showcaseAmount(p: number) {
 }
 
 /** Opacidade de um bloco de texto visível entre a e b. */
-export function band(p: number, a: number, b: number, fade = 0.035) {
+export function band(p: number, a: number, b: number, fade = 0.025) {
   if (p <= a - fade || p >= b + fade) return 0;
   if (p < a) return smooth(ramp(p, a - fade, a));
   if (p > b) return 1 - smooth(ramp(p, b, b + fade));
@@ -88,7 +88,7 @@ export const GEAR_CAMERA: CameraKey[] = [
  */
 export function viewShift(p: number) {
   const s = (a: number, b: number) => smooth(ramp(p, a, b));
-  const intro = 0.17;
+  const intro = 0.22;
   const explode = -0.07;
   // intro → aproximação → explodida (quase centralizada) → final
   let v = intro;
@@ -99,8 +99,8 @@ export function viewShift(p: number) {
 
 /** Legendas da narrativa (HTML sobreposto). */
 export const CAPTIONS = [
-  { id: "approach", a: STAGE.introEnd + 0.03, b: STAGE.approachEnd - 0.02, compact: false, kicker: "Etapa 02", title: "Sob a cabine, o sistema que conduz cada tonelada.", text: "Direção hidráulica: força, precisão e segurança em cada manobra." },
-  { id: "reveal", a: STAGE.approachEnd + 0.01, b: STAGE.revealEnd + 0.02, compact: false, kicker: "Etapa 03", title: "O coração do sistema: a caixa de direção hidráulica.", text: "Transforma o giro do volante em força para esterçar as rodas, com assistência do óleo sob pressão." },
+  { id: "approach", a: STAGE.introEnd + 0.03, b: STAGE.approachEnd - 0.035, compact: false, kicker: "Etapa 02", title: "Cabine basculada. Direto ao ponto.", text: "Presa ao chassi, a caixa de direção hidráulica transforma o giro do volante em força para esterçar cada tonelada." },
+  { id: "reveal", a: STAGE.approachEnd + 0.035, b: STAGE.revealEnd + 0.01, compact: false, kicker: "Etapa 03", title: "O coração do sistema: a caixa de direção hidráulica.", text: "Retirada do chassi para inspeção — é aqui que nossa especialidade começa." },
   { id: "explode", a: STAGE.revealEnd + 0.06, b: STAGE.holdEnd, compact: true, kicker: "Etapa 04", title: "Engenharia em detalhe.", text: "Carcaça, sem-fim de esferas recirculantes, pistão-cremalheira, eixo setor, válvula rotativa e vedações trabalham juntos sob pressão." },
-  { id: "rebuild", a: STAGE.holdEnd + 0.02, b: STAGE.reassembleEnd - 0.01, compact: false, kicker: "Etapa 05", title: "Montagem com critério técnico.", text: "Cada componente volta ao seu lugar — inspecionado, ajustado e testado." },
+  { id: "rebuild", a: STAGE.holdEnd + 0.035, b: STAGE.reassembleEnd - 0.01, compact: false, kicker: "Etapa 05", title: "Montagem com critério técnico.", text: "Cada componente volta ao seu lugar — inspecionado, ajustado e testado." },
 ] as const;

@@ -20,8 +20,11 @@ export interface TruckInfo {
   /** Posição do suporte da caixa de direção (espaço da cena). */
   mount: THREE.Vector3;
   mountQuaternion: THREE.Quaternion;
+  /** Escala da caixa quando montada no chassi. */
+  mountScale: number;
   frontZ: number;
   height: number;
+  length: number;
 }
 
 export function TruckModel({
@@ -85,8 +88,10 @@ export function TruckModel({
     const info: TruckInfo = {
       mount,
       mountQuaternion,
+      mountScale: 0.12,
       frontZ: box2.max.z - center.z,
       height: box2.max.y - box2.min.y,
+      length: TRUCK_LENGTH,
     };
     return { scene, cab, cabBaseX, lights, dimmable, info };
   }, [gltf]);

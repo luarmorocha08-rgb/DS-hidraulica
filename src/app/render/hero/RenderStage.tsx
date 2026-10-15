@@ -21,7 +21,7 @@ export function RenderStage() {
   }, []);
   return (
     <div style={{ position: "fixed", inset: 0, background: "#08080a" }}>
-      <HeroCanvas progress={progress} quality="high" active capture onReady={() => (window.__heroReady = true)} />
+      <HeroCanvas progress={progress} quality="high" active capture vehicle="photo" onReady={() => (window.__heroReady = true)} />
     </div>
   );
 }

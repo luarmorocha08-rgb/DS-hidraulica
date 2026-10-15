@@ -46,7 +46,8 @@ export function HowItWorks() {
   }, []);
 
   return (
-    <section id="como-funciona" aria-labelledby="como-titulo" className="relative py-24 md:py-32">
+    <section id="como-funciona" aria-labelledby="como-titulo" className="relative py-16 md:py-32 overflow-hidden">
+      <span aria-hidden className="watermark top-6 left-[-3vw]">PROCESSO</span>
       <div className="container-ds">
         <SectionHeading
           eyebrow="Como trabalhamos"

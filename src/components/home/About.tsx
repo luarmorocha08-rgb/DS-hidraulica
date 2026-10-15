@@ -15,7 +15,7 @@ const HIGHLIGHTS = [
 export function About({ settings, timeline }: { settings: SiteSettings; timeline: TimelineEntry[] }) {
   const years = settings.yearsOfExperience;
   return (
-    <section id="sobre" aria-labelledby="sobre-titulo" className="relative overflow-hidden py-24 md:py-36">
+    <section id="sobre" aria-labelledby="sobre-titulo" className="relative overflow-hidden py-16 md:py-36">
       <div className="bg-blueprint absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <div className="container-ds relative grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="order-2 lg:order-1">

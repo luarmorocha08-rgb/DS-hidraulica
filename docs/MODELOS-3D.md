@@ -1,5 +1,24 @@
 # Experiência 3D — modelos e convenções
 
+## Foto do caminhão (visual principal da intro)
+
+Coloque a foto em **`public/hero/caminhao.jpg`** (ou defina
+`NEXT_PUBLIC_HERO_TRUCK_PHOTO`). Com a foto presente, a intro fica assim:
+
+1. A foto surge do escuro, os faróis acendem (com brilho e *flare*), um reflexo
+   percorre a lataria e a imagem acompanha levemente o mouse.
+2. No scroll, a câmera dá zoom na região da caixa de direção, o restante
+   escurece e aparece a mira "Caixa de direção hidráulica".
+3. A foto dá lugar à caixa de direção 3D, que se desmonta e remonta.
+4. No final, volta à foto inteira.
+
+No desktop a foto é espelhada para o caminhão ficar à direita do título
+(`MIRROR_ON_DESKTOP` em `src/components/three/TruckPhotoStage.tsx`). Se trocar
+a foto, ajuste ali os pontos `STEERING` (caixa de direção) e `HEADLIGHTS`
+(faróis), em fração da largura/altura da imagem original.
+
+Sem a foto, a intro usa o caminhão 3D procedural (`truck/ProceduralTruck.tsx`).
+
 A intro da página inicial é uma cena React Three Fiber controlada pelo scroll
 (`src/components/three/`). O roteiro (etapas, câmera, textos) fica em
 `timeline.ts` e é compartilhado pela cena, pelos textos e pela sequência de

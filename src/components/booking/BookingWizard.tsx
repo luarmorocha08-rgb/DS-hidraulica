@@ -32,17 +32,24 @@ export function BookingWizard({
   today,
   whatsappNumber,
   initialModality,
+  initialTypeId,
+  initialSlot,
 }: {
   types: BookingTypeOption[];
   service: { id: string; name: string } | null;
   today: string;
   whatsappNumber: string;
   initialModality?: "workshop" | "onsite";
+  /** Vindos do calendário da página inicial. */
+  initialTypeId?: string;
+  initialSlot?: { date: string; time: string };
 }) {
-  const [step, setStep] = useState(0);
-  const [typeId, setTypeId] = useState<string | null>(null);
-  const [modality, setModality] = useState<"workshop" | "onsite" | null>(initialModality ?? null);
-  const [slot, setSlot] = useState<{ date: string; time: string } | null>(null);
+  const preType = types.find((t) => t.id === initialTypeId) ?? null;
+  const preModality = preType && preType.allowWorkshop !== preType.allowOnsite ? (preType.allowWorkshop ? "workshop" : "onsite") : (initialModality ?? null);
+  const [step, setStep] = useState(preType ? (preModality ? 2 : 1) : 0);
+  const [typeId, setTypeId] = useState<string | null>(preType?.id ?? null);
+  const [modality, setModality] = useState<"workshop" | "onsite" | null>(preModality);
+  const [slot, setSlot] = useState<{ date: string; time: string } | null>(preType ? (initialSlot ?? null) : null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [errors, setErrors] = useState<FieldErrors | undefined>();
   const [message, setMessage] = useState<string | null>(null);
@@ -62,7 +69,12 @@ export function BookingWizard({
     }
   }, []);
 
+  const firstStep = useRef(true);
   useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
     top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [step]);
 
