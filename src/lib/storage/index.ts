@@ -71,19 +71,39 @@ class S3Storage implements StorageDriver {
   }
 }
 
+/** Vercel Blob em modo PRIVADO (store criada com access: "private"). */
+class VercelBlobStorage implements StorageDriver {
+  async put(key: string, data: Buffer, contentType: string) {
+    const { put } = await import("@vercel/blob");
+    await put(key, data, { access: "private", contentType, addRandomSuffix: false, allowOverwrite: false });
+  }
+  async get(key: string) {
+    const { get } = await import("@vercel/blob");
+    const res = await get(key, { access: "private" });
+    if (!res || res.statusCode !== 200 || !res.stream) throw new Error("Arquivo não encontrado");
+    return Buffer.from(await new Response(res.stream).arrayBuffer());
+  }
+  async delete(key: string) {
+    const { del } = await import("@vercel/blob");
+    await del(key).catch(() => undefined);
+  }
+}
+
 let driver: StorageDriver | null = null;
 
 export function storage(): StorageDriver {
   if (!driver) {
     const kind = process.env.STORAGE_DRIVER ?? "local";
-    if (kind === "s3") {
+    if (kind === "vercel-blob") {
+      driver = new VercelBlobStorage();
+    } else if (kind === "s3") {
       const bucket = process.env.S3_BUCKET;
       if (!bucket) throw new Error("S3_BUCKET não configurado. Veja docs/DEPLOY.md.");
       driver = new S3Storage(bucket);
     } else if (kind === "local") {
       driver = new LocalStorage(path.resolve(/* turbopackIgnore: true */ process.env.STORAGE_DIR ?? "./storage/uploads"));
     } else {
-      throw new Error(`STORAGE_DRIVER "${kind}" inválido (use "local" ou "s3").`);
+      throw new Error(`STORAGE_DRIVER "${kind}" inválido (use "local", "s3" ou "vercel-blob").`);
     }
   }
   return driver;

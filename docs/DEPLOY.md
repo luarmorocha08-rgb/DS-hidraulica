@@ -38,6 +38,9 @@ Veja `.env.example`. Obrigatórias em produção: `DATABASE_URL`, `AUTH_SECRET`
 
 - `STORAGE_DRIVER=local` grava em `STORAGE_DIR` — para **VPS/servidor próprio,
   Railway ou Render com disco persistente**.
+- `STORAGE_DRIVER=vercel-blob` usa uma **Blob store privada da Vercel**
+  (conectada ao projeto; a Vercel injeta `BLOB_READ_WRITE_TOKEN`). É o que a
+  publicação atual usa.
 - `STORAGE_DRIVER=s3` usa qualquer armazenamento compatível com S3
   (**Supabase Storage, Cloudflare R2, AWS S3**) — **obrigatório na Vercel**,
   onde o disco é temporário. Crie um bucket **privado** e preencha as
