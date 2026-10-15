@@ -9,7 +9,7 @@ import { ramp, smooth, STAGE } from "./timeline";
  * Ao trocar a foto, ajuste STEERING e HEADLIGHTS para a nova imagem.
  */
 export const HERO_PHOTO_SRC = process.env.NEXT_PUBLIC_HERO_TRUCK_PHOTO || "/hero/caminhao.jpg";
-const STEERING = { x: 0.37, y: 0.62 };
+const STEERING = { x: 0.335, y: 0.6 };
 const HEADLIGHTS = [{ x: 0.228, y: 0.685 }];
 /** No desktop a foto é espelhada para o caminhão ficar à direita do texto. */
 const MIRROR_ON_DESKTOP = true;
@@ -60,14 +60,15 @@ export function TruckPhotoStage({ ref, interactive = true }: { ref?: Ref<PhotoSt
     const wide = cw / ch > 1.15;
     let dw: number, dh: number, ox: number, oy: number;
     if (wide) {
-      dh = ch * 1.04;
+      // caminhão inteiro à direita, com respiro para o título à esquerda
+      dh = ch * 0.86;
       dw = dh * ar;
-      if (dw < cw * 0.8) {
-        dw = cw * 0.8;
+      if (dw > cw * 0.78) {
+        dw = cw * 0.78;
         dh = dw / ar;
       }
-      ox = cw - dw * 0.98;
-      oy = ch - dh + ch * 0.03;
+      ox = cw - dw - cw * 0.01;
+      oy = ch - dh - ch * 0.02;
     } else {
       dw = cw * 1.7;
       dh = dw / ar;
