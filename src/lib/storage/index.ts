@@ -34,15 +34,57 @@ class LocalStorage implements StorageDriver {
   }
 }
 
+/**
+ * Armazenamento compatível com S3 (Supabase Storage, Cloudflare R2, AWS S3…).
+ * O bucket deve ser PRIVADO: os arquivos só saem pelas rotas do site.
+ */
+class S3Storage implements StorageDriver {
+  private clientPromise: Promise<import("@aws-sdk/client-s3").S3Client> | null = null;
+  constructor(private bucket: string) {}
+  private client() {
+    this.clientPromise ??= import("@aws-sdk/client-s3").then(
+      ({ S3Client }) =>
+        new S3Client({
+          region: process.env.S3_REGION || "auto",
+          endpoint: process.env.S3_ENDPOINT || undefined,
+          forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
+          credentials: {
+            accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
+            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
+          },
+        }),
+    );
+    return this.clientPromise;
+  }
+  async put(key: string, data: Buffer, contentType: string) {
+    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+    await (await this.client()).send(new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: data, ContentType: contentType }));
+  }
+  async get(key: string) {
+    const { GetObjectCommand } = await import("@aws-sdk/client-s3");
+    const res = await (await this.client()).send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+    return Buffer.from(await res.Body!.transformToByteArray());
+  }
+  async delete(key: string) {
+    const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+    await (await this.client()).send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key })).catch(() => undefined);
+  }
+}
+
 let driver: StorageDriver | null = null;
 
 export function storage(): StorageDriver {
   if (!driver) {
     const kind = process.env.STORAGE_DRIVER ?? "local";
-    if (kind !== "local") {
-      throw new Error(`STORAGE_DRIVER "${kind}" não implementado. Veja docs/DEPLOY.md.`);
+    if (kind === "s3") {
+      const bucket = process.env.S3_BUCKET;
+      if (!bucket) throw new Error("S3_BUCKET não configurado. Veja docs/DEPLOY.md.");
+      driver = new S3Storage(bucket);
+    } else if (kind === "local") {
+      driver = new LocalStorage(path.resolve(/* turbopackIgnore: true */ process.env.STORAGE_DIR ?? "./storage/uploads"));
+    } else {
+      throw new Error(`STORAGE_DRIVER "${kind}" inválido (use "local" ou "s3").`);
     }
-    driver = new LocalStorage(path.resolve(process.env.STORAGE_DIR ?? "./storage/uploads"));
   }
   return driver;
 }

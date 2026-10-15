@@ -36,10 +36,13 @@ Veja `.env.example`. Obrigatórias em produção: `DATABASE_URL`, `AUTH_SECRET`
 
 ## 5. Anexos de clientes (fotos/vídeos)
 
-O driver `local` grava em `STORAGE_DIR`. Funciona em **VPS/servidor próprio,
-Railway ou Render com disco persistente**. Em hospedagem serverless (Vercel)
-o disco é temporário: implemente um driver S3/R2/Supabase Storage na interface
-`StorageDriver` de `src/lib/storage/index.ts` antes de publicar lá.
+- `STORAGE_DRIVER=local` grava em `STORAGE_DIR` — para **VPS/servidor próprio,
+  Railway ou Render com disco persistente**.
+- `STORAGE_DRIVER=s3` usa qualquer armazenamento compatível com S3
+  (**Supabase Storage, Cloudflare R2, AWS S3**) — **obrigatório na Vercel**,
+  onde o disco é temporário. Crie um bucket **privado** e preencha as
+  variáveis `S3_*` do `.env.example`. Os anexos dos clientes só são entregues
+  pelo painel (`/api/files`) e as imagens do site por `/api/media`.
 
 ## 6. Hospedagem
 
