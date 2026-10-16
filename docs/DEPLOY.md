@@ -72,6 +72,10 @@ Authorization: Bearer <CRON_SECRET>
 ```
 
 (Vercel Cron, GitHub Actions, `cron` do servidor ou serviço como cron-job.org.)
+Na Vercel, o `vercel.json` já agenda uma execução diária (09:00 UTC = 06:00 em
+São Paulo), que é o limite do plano Hobby; a janela de 2h–26h cobre o dia. No
+plano Pro, troque o `schedule` para `0 * * * *`. A Vercel envia
+`Authorization: Bearer $CRON_SECRET` automaticamente.
 Envia lembretes ~24h antes dos atendimentos confirmados e reenvia falhas.
 
 ## 8. Integrações
